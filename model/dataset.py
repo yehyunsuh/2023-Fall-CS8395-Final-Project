@@ -36,6 +36,7 @@ def load_data(args):
 
     # can add augmentations if you want
     transform = A.Compose([
+        # A.PadIfNeeded(),  # Apply padding
         A.Resize(height=args.resize, width=args.resize),
         A.Normalize(
             mean=(0.485, 0.456, 0.406),

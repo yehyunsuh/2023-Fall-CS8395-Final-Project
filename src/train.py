@@ -13,7 +13,7 @@ def train(args, model, train_loader, DEVICE):
         print(f"\nRunning Epoch # {epoch}")
 
         total_loss = 0
-        
+
         # TODO: train model
         for image, patient_info, data_type in tqdm(train_loader):
             image = image.to(DEVICE)

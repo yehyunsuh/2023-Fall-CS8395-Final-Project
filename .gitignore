@@ -1,10 +1,10 @@
 # Ignore large data files
-# *.csv
+*.csv
 *.xlsx
 *.zip
 *.jpg
-!data/post/0000A5BB_AA85CB7B_AAEA2A42_0000B50B_EEDD7D44_right.jpg
-!data/pre/0000A5BB_AAEA4216_AAECE075_0000F6F7_EEA11D65_right.jpg
+# !data/post/0000A5BB_AA85CB7B_AAEA2A42_0000B50B_EEDD7D44_right.jpg
+# !data/pre/0000A5BB_AAEA4216_AAECE075_0000F6F7_EEA11D65_right.jpg
 *.png
 
 # Ignore .DS_Store files

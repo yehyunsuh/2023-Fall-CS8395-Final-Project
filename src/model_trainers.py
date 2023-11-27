@@ -7,7 +7,7 @@ from src.losses import KL_div_N01
 
 def train_unpaired(model, train_loader, device, lr, epochs):
     loss_fn_MSE = nn.MSELoss()
-    loss_fn_KL = KL_div_N01()
+    loss_fn_KL = KL_div_N01
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     for epoch in range(epochs):
@@ -37,7 +37,7 @@ def train_unpaired(model, train_loader, device, lr, epochs):
 
 def train_paired(model, train_loader, device, lr, epochs):
     loss_fn_MSE = nn.MSELoss()
-    loss_fn_KL = KL_div_N01()
+    loss_fn_KL = KL_div_N01
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     for epoch in range(epochs):

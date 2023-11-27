@@ -9,3 +9,10 @@
 
 # Ignore .DS_Store files
 .DS_Store
+
+# ignore ipynb checkpoints and converted ipynb files
+.ipynb_checkpoints
+*.nbconvert.ipynb
+
+# ignore python cache files
+__pycache__/

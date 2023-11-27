@@ -11,7 +11,7 @@ import argparse
 
 from datasets import load_data
 from models import get_model
-from train import train
+from model_trainers import train
 from utils import customize_seed
 
 

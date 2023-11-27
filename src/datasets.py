@@ -1,7 +1,3 @@
-"""
-Here goes the Data Loader
-"""
-
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import matplotlib.pyplot as plt
@@ -44,7 +40,9 @@ class UnpairedDataset(Dataset):
         if self.transform:
             image = self.transform(image=image)['image']
 
-        return image, label, surgery, patient_side
+        image = image.mean(axis=0, keepdims=True)
+
+        return image, label, patient_side
 
 # TODO: Implement paired dataset
 
@@ -56,7 +54,8 @@ def load_data(args):
 
 
 if __name__ == '__main__':
-    df = pd.read_csv('data/data.csv')
+    df = pd.read_csv('../data/data.csv')
+    df['path'] = df['path'].apply(lambda x: '../' + x)
     train_dataset = UnpairedDataset(df)
     print(len(train_dataset))
 
@@ -64,13 +63,11 @@ if __name__ == '__main__':
     print(sample[0].shape)
     print(sample[1])
     print(sample[2])
-    print(sample[3])
 
     num_workers = 4 * torch.cuda.device_count()
     train_loader = DataLoader(train_dataset, shuffle=True,
                               batch_size=8, num_workers=num_workers)
-    for i, (image, label, surgery, patient_side) in enumerate(train_loader):
+    for i, (image, label, patient_side) in enumerate(train_loader):
         print(image.shape)
         print(label.shape)
-        print(surgery)
         print(patient_side)

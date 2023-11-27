@@ -74,7 +74,7 @@ class CVAE_MLP(nn.Module):
 
 
 class Encoder_CNN(nn.Module):
-    def __init__(self, input_channels: int = 3,
+    def __init__(self, input_channels: int = 1,
                  num_kernels=[16, 32, 64, 128, 256]):
         super(Encoder_CNN, self).__init__()
 
@@ -94,7 +94,7 @@ class Encoder_CNN(nn.Module):
         self.enc = nn.Sequential(*self.enc)
 
     def forward(self, x):
-        return self.enc(x)
+        return self.enc(x.float())
 
 
 class Decoder_CNN(nn.Module):
@@ -119,11 +119,11 @@ class Decoder_CNN(nn.Module):
         self.dec = nn.Sequential(*self.dec)
 
     def forward(self, x):
-        return self.dec(x)
+        return self.dec(x.float())
 
 
 class CVAE_CNN(nn.Module):
-    def __init__(self, input_channels=3,
+    def __init__(self, input_channels=1,
                  encoder_kernels=[16, 32, 64, 128, 256],
                  decoder_kernels=[64, 32, 16, 8, 4],
                  n_label=2):

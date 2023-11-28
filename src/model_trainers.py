@@ -1,26 +1,36 @@
+import os
 import torch
 import torch.nn as nn
 from tqdm import tqdm
 
-from src.losses import KL_div_N01
+from losses import KL_div_N01
+from log import log_result
+from visualization import visualize_reconstructed_image
 
 
-def train_unpaired(model, train_loader, device, lr, epochs):
+def train_unpaired(args, model, train_loader, device):
     loss_fn_MSE = nn.MSELoss()
     loss_fn_KL = KL_div_N01
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 
-    for epoch in range(epochs):
+    for epoch in range(args.epochs):
         print(f"\nRunning Epoch #{epoch}")
 
         running_total_loss = 0.0
         running_mse_loss = 0.0
         running_kl_loss = 0.0
 
-        for image, label, patient_side in tqdm(train_loader):
+        for idx, (image, label, patient_side) in enumerate(tqdm(train_loader)):
             image = image.to(device)
+            label = label.to(device)
 
             image_recon, mean, log_sigma_sq = model.forward_train(image, label)
+
+            # visualize original and reconstructed image
+            if (epoch % int(args.epochs/10) == 0 or epoch == args.epochs-1) and idx == 0 :
+                print(torch.max(image), torch.min(image))
+                print(torch.max(image_recon), torch.min(image_recon))
+                visualize_reconstructed_image(args, image, image_recon, epoch, idx)
 
             mse_loss = loss_fn_MSE(image_recon, image)
             kl_loss = loss_fn_KL(mean, log_sigma_sq)
@@ -33,14 +43,17 @@ def train_unpaired(model, train_loader, device, lr, epochs):
             running_total_loss += loss.item()
             running_mse_loss += mse_loss.item()
             running_kl_loss += kl_loss.item()
+        
+        if args.wandb:
+            log_result(running_total_loss, running_mse_loss, running_kl_loss, len(train_loader))
 
 
-def train_paired(model, train_loader, device, lr, epochs):
+def train_paired(args, model, train_loader, device):
     loss_fn_MSE = nn.MSELoss()
     loss_fn_KL = KL_div_N01
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 
-    for epoch in range(epochs):
+    for epoch in range(args.epochs):
         print(f"\nRunning Epoch #{epoch}")
 
         running_total_loss = 0.0
@@ -51,6 +64,8 @@ def train_paired(model, train_loader, device, lr, epochs):
         for image_pre, image_post, label_pre, label_post, patient_side in tqdm(train_loader):
             image_pre = image_pre.to(device)
             image_post = image_post.to(device)
+            label_pre = label_pre.to(device)
+            label_post = label_post.to(device)
 
             # pre-op reconstruction
             image_pre_recon, mean_pre, log_sigma_sq_pre = model.forward_train(image_pre, label_pre)
@@ -80,3 +95,11 @@ def train_paired(model, train_loader, device, lr, epochs):
             running_mse_loss += mse_loss_post.item()
             running_kl_loss += kl_loss_post.item()
             running_synth_loss += synth_loss.item()
+
+
+def train(args, model, train_loader, DEVICE):
+    os.makedirs(f'{args.result}/{args.experiment_name}', exist_ok=True)
+    if args.dataset == "paired":
+        train_dataset = train_paired(args, model, train_loader, DEVICE)
+    elif args.dataset == "unpaired":
+        train_dataset = train_unpaired(args, model, train_loader, DEVICE)

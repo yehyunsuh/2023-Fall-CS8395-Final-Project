@@ -19,3 +19,6 @@ result
 
 # ignore python cache files
 __pycache__/
+
+# Ignore temporary files
+*tmp*

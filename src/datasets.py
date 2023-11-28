@@ -58,8 +58,8 @@ class PairedDataset(Dataset):
 
 
     def __getitem__(self, index):
-        image_pre = plt.imread(self.df.loc[index, 'path_pre'])
-        image_post = plt.imread(self.df.loc[index, 'path_post'])
+        image_pre = plt.imread(f'../{self.df.loc[index, "path_pre"]}')
+        image_post = plt.imread(f'../{self.df.loc[index, "path_post"]}')
         patient = self.df.loc[index, 'patient']
         side = self.df.loc[index, 'side']
         patient_side = patient + '_' + side

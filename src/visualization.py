@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 
-def visualize_reconstructed_image(args, image, image_recon, epoch, idx):
+def visualize_reconstructed_image(args, image, image_recon, epoch, idx, data_type, surgery_type):
     image = image.cpu().detach().numpy()
     image_recon = image_recon.cpu().detach().numpy()
 
@@ -16,4 +16,7 @@ def visualize_reconstructed_image(args, image, image_recon, epoch, idx):
                 ax[i, j].imshow(image_recon[i*4+(j-4), 0, :, :], cmap='gray')
                 ax[i, j].axis('off')
     
-    plt.savefig(f'{args.result}/{args.experiment_name}/Epoch{epoch}_Batch{idx}.png')
+    if data_type == "unpaired":
+        plt.savefig(f'{args.result}/{args.experiment_name}/Epoch{epoch}_Batch{idx}.png')
+    elif data_type == "paired":
+        plt.savefig(f'{args.result}/{args.experiment_name}/Epoch{epoch}_Batch{idx}_{surgery_type}.png')

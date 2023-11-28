@@ -1,8 +1,4 @@
-"""Currently, CVAE_CNN is still hard-coded for 256x256 images.
-The encoder and decoder need to have the same number of layers.
-TODO: make it more flexible?
-"""
-
+import numpy as np
 import torch
 import torch.nn as nn
 
@@ -123,10 +119,13 @@ class Decoder_CNN(nn.Module):
 
 
 class CVAE_CNN(nn.Module):
-    def __init__(self, input_channels=1,
-                 encoder_kernels=[16, 32, 64, 128, 256],
-                 decoder_kernels=[64, 32, 16, 8, 4],
-                 n_label=2):
+    def __init__(
+        self, 
+        input_channels=1,
+        encoder_kernels=[16, 32, 64, 128, 256],
+        decoder_kernels=[64, 32, 16, 8, 4],
+        n_label=2
+    ):
         super(CVAE_CNN, self).__init__()
 
         self.n_z = encoder_kernels[-1]//2
@@ -169,18 +168,25 @@ class CVAE_CNN(nn.Module):
 
 
 def get_model(args):
+    # encoder_kernels = [2**i for i in range(int(np.log2(args.resize)) + 1)]
+    # print(encoder_kernels)
+    # decoder_kernels = 
     if args.model == "CVAE_MLP":
-        model = CVAE_MLP()
+        return CVAE_MLP()
     elif args.model == "CVAE_CNN":
-        model = CVAE_CNN()
-
-    return model
+        return CVAE_CNN()
 
 
 if __name__ == "__main__":
-    x = torch.zeros((10, 3, 256, 256))
+    encoder_kernels = [2**i for i in range(int(np.log2(512)) + 1)][-5:]
+    print(encoder_kernels)
+
+    x = torch.zeros((10, 1, 512, 512))
     y = torch.zeros((10, 2))
-    cvae = CVAE_CNN()
+    cvae = CVAE_CNN(
+        encoder_kernels=encoder_kernels,
+        decoder_kernels=[128, 64, 32, 16, 8],
+    )
     print(cvae(x, y).shape)
     # enc = Encoder_CNN(1)
     # z = enc(x)

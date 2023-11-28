@@ -7,27 +7,18 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 
 
-TRANSFORM = A.Compose([
-    # A.PadIfNeeded(),  # Apply padding
-    A.Resize(height=256, width=256),
-    A.Normalize(
-        mean=(0.485, 0.456, 0.406),
-        std=(0.229, 0.224, 0.225),
-    ),
-    ToTensorV2(),
-])
-
-
 class UnpairedDataset(Dataset):
-    def __init__(self, df, transform=TRANSFORM):
+    def __init__(self, df, transform=None):
         self.df = df.reset_index()
         self.transform = transform
+
 
     def __len__(self):
         return len(self.df)
 
+
     def __getitem__(self, index):
-        image = plt.imread(self.df.loc[index, 'path'])
+        image = plt.imread(f'../{self.df.loc[index, "path"]}')
         patient = self.df.loc[index, 'patient']
         side = self.df.loc[index, 'side']
         patient_side = patient + '_' + side
@@ -46,7 +37,7 @@ class UnpairedDataset(Dataset):
 
 
 class PairedDataset(Dataset):
-    def __init__(self, df, transform=TRANSFORM):
+    def __init__(self, df, transform=None):
         df_pre = df[df['surgery'] == 'pre']
         df_pre = df_pre.rename(columns={'path': 'path_pre'})
         df_pre = df_pre.rename(columns={'filename': 'filename_pre'})
@@ -61,8 +52,10 @@ class PairedDataset(Dataset):
         self.df = self.df.reset_index()
         self.transform = transform
 
+
     def __len__(self):
         return len(self.df)
+
 
     def __getitem__(self, index):
         image_pre = plt.imread(self.df.loc[index, 'path_pre'])
@@ -84,7 +77,23 @@ class PairedDataset(Dataset):
 
 
 def load_data(args):
-    pass
+    TRANSFORM = A.Compose([
+        # A.PadIfNeeded(),  # Apply padding
+        A.Resize(height=args.resize, width=args.resize),
+        A.Normalize(
+            mean=(0.485, 0.456, 0.406),
+            std=(0.229, 0.224, 0.225),
+        ),
+        ToTensorV2(),
+    ])
+    df = pd.read_csv(args.dataset_csv)
+    if args.dataset == "paired":
+        train_dataset = PairedDataset(df, TRANSFORM)
+    elif args.dataset == "unpaired":
+        train_dataset = UnpairedDataset(df, TRANSFORM)
+    
+    print("Length of train dataset: ", len(train_dataset))
+    return DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
 
 
 if __name__ == '__main__':

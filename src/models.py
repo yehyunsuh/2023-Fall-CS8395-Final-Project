@@ -2,6 +2,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from utils import convert_image_to_scalar, convert_scalar_to_image
+
 
 class CVAE_MLP(nn.Module):
     def __init__(self, n_input: int, n_output: int,
@@ -57,16 +59,24 @@ class CVAE_MLP(nn.Module):
         return self.dec(z_lab)
 
     def forward(self, x, lab):
+        image_shape = x.shape
+        x = convert_image_to_scalar(x)
+
         mean, log_sigma_sq = self.encode_x_to_mean_logsigsq(x)
         z = self.encode_mean_logsigsq_to_z(mean, log_sigma_sq)
+
         output = self.decode_z_to_output(z, lab)
-        return output
+        return convert_scalar_to_image(output, image_shape)
 
     def forward_train(self, x, lab):
+        image_shape = x.shape
+        x = convert_image_to_scalar(x)
+        
         mean, log_sigma_sq = self.encode_x_to_mean_logsigsq(x)
         z = self.encode_mean_logsigsq_to_z(mean, log_sigma_sq)
+
         output = self.decode_z_to_output(z, lab)
-        return output, mean, log_sigma_sq
+        return convert_scalar_to_image(output, image_shape), mean, log_sigma_sq
 
 
 class Encoder_CNN(nn.Module):
@@ -172,24 +182,30 @@ def get_model(args):
     # print(encoder_kernels)
     # decoder_kernels = 
     if args.model == "CVAE_MLP":
-        return CVAE_MLP()
+        return CVAE_MLP(args.resize**2,args.resize**2, 5, args.resize, n_label=2)
     elif args.model == "CVAE_CNN":
         return CVAE_CNN()
 
 
 if __name__ == "__main__":
-    encoder_kernels = [2**i for i in range(int(np.log2(512)) + 1)][-5:]
-    print(encoder_kernels)
+    # encoder_kernels = [2**i for i in range(int(np.log2(512)) + 1)][-5:]
+    # print(encoder_kernels)
 
-    x = torch.zeros((10, 1, 512, 512))
-    y = torch.zeros((10, 2))
-    cvae = CVAE_CNN(
-        encoder_kernels=encoder_kernels,
-        decoder_kernels=[128, 64, 32, 16, 8],
-    )
-    print(cvae(x, y).shape)
+    # x = torch.zeros((10, 1, 512, 512))
+    # y = torch.zeros((10, 2))
+    # cvae = CVAE_CNN(
+    #     encoder_kernels=encoder_kernels,
+    #     decoder_kernels=[128, 64, 32, 16, 8],
+    # )
+    # print(cvae(x, y).shape)
     # enc = Encoder_CNN(1)
     # z = enc(x)
     # print(z.shape)
     # dec = Decoder_CNN(256)
     # print(dec(z).shape)
+
+    x = torch.zeros((10, 1, 256, 256))
+    y = torch.zeros((10, 2))
+
+    cvae = CVAE_MLP(256**2,256**2, 5, 256, n_label=2)
+    print(cvae(x, y).shape)

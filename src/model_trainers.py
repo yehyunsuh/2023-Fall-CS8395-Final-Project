@@ -22,7 +22,7 @@ def train_unpaired(args, model, train_loader, device):
 
         for idx, (image, label, patient_side) in enumerate(tqdm(train_loader)):
             image = image.to(device)
-            label = label.to(device)
+            label = label.to(torch.float32).to(device)
 
             image_recon, mean, log_sigma_sq = model.forward_train(image, label)
 
@@ -34,7 +34,7 @@ def train_unpaired(args, model, train_loader, device):
 
             mse_loss = loss_fn_MSE(image_recon, image)
             kl_loss = loss_fn_KL(mean, log_sigma_sq)
-            loss = mse_loss + kl_loss
+            loss = 1e2*mse_loss + kl_loss
 
             optimizer.zero_grad()
             loss.backward()

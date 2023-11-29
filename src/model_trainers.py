@@ -34,7 +34,7 @@ def train_unpaired(args, model, train_loader, device):
 
             mse_loss = loss_fn_MSE(image_recon, image)
             kl_loss = loss_fn_KL(mean, log_sigma_sq)
-            loss = 1e2*mse_loss + kl_loss
+            loss = args.mse_weight * mse_loss + kl_loss
 
             optimizer.zero_grad()
             loss.backward()

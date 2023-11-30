@@ -407,15 +407,12 @@ class CVAE_CNN(nn.Module):
 
 
 def get_model(args):
-    # encoder_kernels = [2**i for i in range(int(np.log2(args.resize)) + 1)]
-    # print(encoder_kernels)
-    # decoder_kernels =
     if args.model == "CVAE_MLP":
         return CVAE_MLP(args.resize**2,
                         args.resize**2,
                         5, args.resize, n_label=2)
     elif args.model == "CVAE_CNN":
-        return CVAE_CNN()
+        return CVAE_CNN(image_shape=(1, args.resize, args.resize))
 
 
 if __name__ == "__main__":

@@ -21,7 +21,7 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', '--bs', type=int, default=16, help='Resize value')
 
     # related to model
-    parser.add_argument('--epochs', type=int, default=200, help='Number of epochs')
+    parser.add_argument('--epochs', type=int, default=10000, help='Number of epochs')
     parser.add_argument('--experiment_name', type=str, default="baseline", help='wandb name')
     parser.add_argument('--mse_weight', type=int, default=1)
 

@@ -40,8 +40,8 @@ if __name__ == "__main__":
     # related to model
     parser.add_argument('--model', type=str, default="CVAE_CNN", help='Name of the model that you want to use')
     parser.add_argument('--epochs', type=int, default=100, help='Number of epochs')
-    parser.add_argument('--learning_rate', '--lr', type=float, default=1e-4, help='Learning rate')
-    parser.add_argument('--mse_weight', type=int, default=1, help='Learning rate')
+    parser.add_argument('--learning_rate', '--lr', type=float, default=3e-4, help='Learning rate')
+    parser.add_argument('--mse_weight', type=float, default=1, help='Learning rate')
 
     # related to logging
     parser.add_argument('--wandb', action='store_true', help='whether to use wandb or not')

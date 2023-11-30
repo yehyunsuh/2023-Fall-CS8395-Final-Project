@@ -1,19 +1,27 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def visualize_reconstructed_image(args, image, image_recon, epoch, idx, data_type, surgery_type):
-    image = image.cpu().detach().numpy()
-    image_recon = image_recon.cpu().detach().numpy()
+    if len(image) < 16:
+        num = 4
+    elif len(image) >= 16:
+        num = 16
 
-    # this part is hard coded to fit on batch size of 16
-    fig, ax = plt.subplots(4, 8)
-    for i in range(4):
-        for j in range(8):
-            if j < 4:
-                ax[i, j].imshow(image[i*4+j, 0, :, :], cmap='gray')
+    image = image[:num].cpu().detach().numpy()
+    image_recon = image_recon[:num].cpu().detach().numpy()
+
+    x = int(np.sqrt(num))
+    y = int(np.sqrt(num) * 2)
+
+    fig, ax = plt.subplots(x, y)
+    for i in range(x):
+        for j in range(y):
+            if j < x:
+                ax[i, j].imshow(image[i*x+j, 0, :, :], cmap='gray')
                 ax[i, j].axis('off')
             else:
-                ax[i, j].imshow(image_recon[i*4+(j-4), 0, :, :], cmap='gray')
+                ax[i, j].imshow(image_recon[i*x+(j-x), 0, :, :], cmap='gray')
                 ax[i, j].axis('off')
     
     if data_type == "unpaired":

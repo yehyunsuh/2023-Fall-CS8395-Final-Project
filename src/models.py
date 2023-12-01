@@ -412,7 +412,10 @@ def get_model(args):
                         args.resize**2,
                         5, args.resize, n_label=2)
     elif args.model == "CVAE_CNN":
-        return CVAE_CNN(image_shape=(1, args.resize, args.resize))
+        return CVAE_CNN(
+            image_shape=(1, args.resize, args.resize),
+            n_z=args.latent_space
+        )
 
 
 if __name__ == "__main__":

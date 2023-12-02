@@ -24,11 +24,11 @@ def train_unpaired(args, model, train_loader, device):
             image = image.to(device)
             label = label.to(torch.float32).to(device)
 
-            image_recon, mean, log_sigma_sq = model.forward_train(image, label)
+            image_recon, mean, log_sigma_sq = model(image, label)
 
             # visualize original and reconstructed image
-            # if (epoch % int(args.epochs/10) == 0 or epoch == args.epochs-1) and idx == 0 :
-            if (epoch % 100 == 0 or epoch == args.epochs-1) and idx == 0 :
+            if (epoch % int(args.epochs/10) == 0 or epoch == args.epochs-1) and idx == 0 :
+            # if (epoch % 100 == 0 or epoch == args.epochs-1) and idx == 0 :
                 print(torch.max(image[0]), torch.min(image[0]))
                 print(torch.max(image_recon[0]), torch.min(image_recon[0]))
                 visualize_reconstructed_image(args, image, image_recon, epoch, idx, args.dataset, None)

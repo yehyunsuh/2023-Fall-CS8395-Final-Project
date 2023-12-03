@@ -24,7 +24,8 @@ def train_unpaired(args, model, train_loader, device):
             image = image.to(device)
             label = label.to(torch.float32).to(device)
 
-            image_recon, mean, log_sigma_sq = model(image, label)
+            image_recon, mean, log_sigma_sq = model.forward_train(image, label)
+            # image_recon, mean, log_sigma_sq = model(image, label)
 
             # visualize original and reconstructed image
             if (epoch % int(args.epochs/10) == 0 or epoch == args.epochs-1) and idx == 0 :
@@ -96,7 +97,7 @@ def train_paired(args, model, train_loader, device):
             synth_loss = loss_fn_MSE(image_post_synth, image_post)
 
             # add losses
-            loss = mse_loss_pre + kl_loss_pre + mse_loss_post + kl_loss_post + synth_loss
+            loss = args.mse_weight * mse_loss_pre + kl_loss_pre + args.mse_weight * mse_loss_post + kl_loss_post + synth_loss
 
             optimizer.zero_grad()
             loss.backward()

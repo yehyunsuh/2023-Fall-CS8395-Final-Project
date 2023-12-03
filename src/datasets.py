@@ -86,7 +86,7 @@ def load_data(args):
         ),
         ToTensorV2(),
     ])
-    df = pd.read_csv(args.dataset_csv)
+    df = pd.read_csv(args.dataset_csv, encoding='utf-8')
     if args.dataset == "paired":
         train_dataset = PairedDataset(df, TRANSFORM)
     elif args.dataset == "unpaired":

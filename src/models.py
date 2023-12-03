@@ -243,23 +243,23 @@ class CVAE_CNN(nn.Module):
         z_lab = torch.cat((z, lab), axis=-1)
         return self.decoder(z_lab)
 
-    # def forward(self, x, lab):
-    #     mean, log_sigma_sq = self.encode_x_to_mean_logsigsq(x)
-    #     z = self.encode_mean_logsigsq_to_z(mean, log_sigma_sq)
-    #     output = self.decode_z_to_output(z, lab)
-    #     return output
-
-    # def forward_train(self, x, lab):
-    #     mean, log_sigma_sq = self.encode_x_to_mean_logsigsq(x)
-    #     z = self.encode_mean_logsigsq_to_z(mean, log_sigma_sq)
-    #     output = self.decode_z_to_output(z, lab)
-    #     return output, mean, log_sigma_sq
-
     def forward(self, x, lab):
         mean, log_sigma_sq = self.encode_x_to_mean_logsigsq(x)
         z = self.encode_mean_logsigsq_to_z(mean, log_sigma_sq)
         output = self.decode_z_to_output(z, lab)
+        return output
+
+    def forward_train(self, x, lab):
+        mean, log_sigma_sq = self.encode_x_to_mean_logsigsq(x)
+        z = self.encode_mean_logsigsq_to_z(mean, log_sigma_sq)
+        output = self.decode_z_to_output(z, lab)
         return output, mean, log_sigma_sq
+
+    # def forward(self, x, lab):
+    #     mean, log_sigma_sq = self.encode_x_to_mean_logsigsq(x)
+    #     z = self.encode_mean_logsigsq_to_z(mean, log_sigma_sq)
+    #     output = self.decode_z_to_output(z, lab)
+    #     return output, mean, log_sigma_sq
 
 
 # class CVUnet(nn.Module):
@@ -427,7 +427,7 @@ def get_model(args):
             n_z=args.latent_space
         )
     
-    model = nn.DataParallel(model)
+    # model = nn.DataParallel(model)
 
     return model
 

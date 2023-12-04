@@ -4,11 +4,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
+import cv2
 from torch.utils.data import Dataset, DataLoader
 
 
 class UnpairedDataset(Dataset):
-    def __init__(self, df, transform=None):
+    def __init__(self, args, df, transform=None):
+        self.args = args
         self.df = df.reset_index()
         self.transform = transform
 
@@ -18,7 +20,10 @@ class UnpairedDataset(Dataset):
 
 
     def __getitem__(self, index):
-        image = plt.imread(f'../{self.df.loc[index, "path"]}')
+        if self.args.dataset_csv == "../data/data.csv":
+            image = plt.imread(f'../{self.df.loc[index, "path"]}')
+        else:
+            image = cv2.imread(f'../{self.df.loc[index, "path"]}')
         patient = self.df.loc[index, 'patient']
         side = self.df.loc[index, 'side']
         patient_side = patient + '_' + side
@@ -90,7 +95,7 @@ def load_data(args):
     if args.dataset == "paired":
         train_dataset = PairedDataset(df, TRANSFORM)
     elif args.dataset == "unpaired":
-        train_dataset = UnpairedDataset(df, TRANSFORM)
+        train_dataset = UnpairedDataset(args, df, TRANSFORM)
     
     print("Length of train dataset: ", len(train_dataset))
     return DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)

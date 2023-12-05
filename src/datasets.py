@@ -20,10 +20,10 @@ class UnpairedDataset(Dataset):
 
 
     def __getitem__(self, index):
-        if self.args.dataset_csv == "../data/data.csv":
-            image = plt.imread(f'../{self.df.loc[index, "path"]}')
+        if self.args.dataset_csv == "/data/yehyun/implantGAN/data/data.csv":
+            image = plt.imread(f'/data/yehyun/implantGAN/{self.df.loc[index, "path"]}')
         else:
-            image = cv2.imread(f'../{self.df.loc[index, "path"]}')
+            image = cv2.imread(f'/data/yehyun/implantGAN/{self.df.loc[index, "path"]}')
         patient = self.df.loc[index, 'patient']
         side = self.df.loc[index, 'side']
         patient_side = patient + '_' + side
@@ -82,15 +82,33 @@ class PairedDataset(Dataset):
 
 
 def load_data(args):
-    TRANSFORM = A.Compose([
-        # A.PadIfNeeded(),  # Apply padding
-        A.Resize(height=args.resize, width=args.resize),
-        A.Normalize(
-            mean=(0.485, 0.456, 0.406),
-            std=(0.229, 0.224, 0.225),
-        ),
-        ToTensorV2(),
-    ])
+    if not args.augmentation:
+        TRANSFORM = A.Compose([
+            A.Resize(height=args.resize, width=args.resize),
+            A.Normalize(
+                mean=(0.485, 0.456, 0.406),
+                std=(0.229, 0.224, 0.225),
+            ),
+            ToTensorV2(),
+        ])
+    else:
+        TRANSFORM = A.Compose([
+            A.Resize(height=args.resize, width=args.resize),
+            A.Rotate(always_apply=False, p=0.5, limit=(-15, 15), interpolation=0, border_mode=0, value=(0, 0, 0), mask_value=None, rotate_method='largest_box', crop_border=False),
+            # A.OneOf([
+            #     A.PixelDropout(always_apply=False, p=0.5, dropout_prob=0.01, per_channel=0, drop_value=(0, 0, 0), mask_drop_value=None),
+            #     A.Rotate(always_apply=False, p=0.5, limit=(-15, 15), interpolation=0, border_mode=0, value=(0, 0, 0), mask_value=None, rotate_method='largest_box', crop_border=False),
+            #     A.CoarseDropout(always_apply=False, p=1.0, max_holes=8, max_height=8, max_width=8, min_holes=8, min_height=8, min_width=8, fill_value=(0, 0, 0), mask_fill_value=None),
+
+            # ], p=0.3)
+            
+            A.Normalize(
+                mean=(0.485, 0.456, 0.406),
+                std=(0.229, 0.224, 0.225),
+            ),
+            ToTensorV2(),
+        ])
+    
     df = pd.read_csv(args.dataset_csv, encoding='utf-8')
     if args.dataset == "paired":
         train_dataset = PairedDataset(df, TRANSFORM)

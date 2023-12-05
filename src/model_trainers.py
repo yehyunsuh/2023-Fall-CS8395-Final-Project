@@ -28,7 +28,7 @@ def train_unpaired(args, model, train_loader, device):
             # image_recon, mean, log_sigma_sq = model(image, label)
 
             # visualize original and reconstructed image
-            if (epoch % int(args.epochs/10) == 0 or epoch == args.epochs-1) and idx == 0 :
+            if (epoch % int(args.epochs/30) == 0 or epoch == args.epochs-1) and idx == 0 :
             # if (epoch % 100 == 0 or epoch == args.epochs-1) and idx == 0 :
                 print(torch.max(image[0]), torch.min(image[0]))
                 print(torch.max(image_recon[0]), torch.min(image_recon[0]))
@@ -46,6 +46,13 @@ def train_unpaired(args, model, train_loader, device):
             running_mse_loss += mse_loss.item()
             running_kl_loss += kl_loss.item()
         
+        checkpoint = {
+            "state_dict": model.state_dict(),
+            "optimizer":  optimizer.state_dict(),
+        }
+        # torch.save(checkpoint, f'/data/yehyun/implantGAN/{args.experiment_name}/model.pth')
+        if (epoch % int(args.epochs/7) == 0 or epoch == args.epochs-1) and args.save_weight:
+            torch.save(checkpoint, f'model_weight/{args.experiment_name}.pth')
         if args.wandb:
             log_unpaired_result(running_total_loss, running_mse_loss, running_kl_loss, len(train_loader))
 
@@ -116,6 +123,8 @@ def train_paired(args, model, train_loader, device):
 
 def train(args, model, train_loader, DEVICE):
     os.makedirs(f'{args.result}/{args.experiment_name}', exist_ok=True)
+    os.makedirs(f'model_weight', exist_ok=True)
+    # os.makedirs(f'/data/yehyun/implantGAN/{args.experiment_name}', exist_ok=True)
     if args.dataset == "paired":
         train_dataset = train_paired(args, model, train_loader, DEVICE)
     elif args.dataset == "unpaired":

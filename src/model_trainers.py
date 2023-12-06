@@ -20,19 +20,26 @@ def train_unpaired(args, model, train_loader, device):
         running_mse_loss = 0.0
         running_kl_loss = 0.0
 
-        for idx, (image, label, patient_side) in enumerate(tqdm(train_loader)):
+        for idx, (image, image_aug, label, patient_side) in enumerate(tqdm(train_loader)):
             image = image.to(device)
             label = label.to(torch.float32).to(device)
 
-            image_recon, mean, log_sigma_sq = model.forward_train(image, label)
+            if args.augmentation:
+                image_aug = image_aug.to(device)
+                image_recon, mean, log_sigma_sq = model.forward_train(image_aug, label)
+            else:
+                image_recon, mean, log_sigma_sq = model.forward_train(image, label)
+            
+            # multiple gpu
             # image_recon, mean, log_sigma_sq = model(image, label)
 
             # visualize original and reconstructed image
-            if (epoch % int(args.epochs/30) == 0 or epoch == args.epochs-1) and idx == 0 :
+            if (epoch % int(args.epochs/30) == 0 or epoch == args.epochs-1) and idx == 0:
             # if (epoch % 100 == 0 or epoch == args.epochs-1) and idx == 0 :
                 print(torch.max(image[0]), torch.min(image[0]))
                 print(torch.max(image_recon[0]), torch.min(image_recon[0]))
-                visualize_reconstructed_image(args, image, image_recon, epoch, idx, args.dataset, None)
+                visualize_reconstructed_image(args, image, image_recon, epoch, idx, args.dataset, None, "org")
+                visualize_reconstructed_image(args, image_aug, image_recon, epoch, idx, args.dataset, None, "aug")
 
             mse_loss = loss_fn_MSE(image_recon, image)
             kl_loss = loss_fn_KL(mean, log_sigma_sq)

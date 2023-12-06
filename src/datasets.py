@@ -9,10 +9,11 @@ from torch.utils.data import Dataset, DataLoader
 
 
 class UnpairedDataset(Dataset):
-    def __init__(self, args, df, transform=None):
+    def __init__(self, args, df, transform=None, augmentation=None):
         self.args = args
         self.df = df.reset_index()
         self.transform = transform
+        self.augmentation = augmentation
 
 
     def __len__(self):
@@ -34,11 +35,16 @@ class UnpairedDataset(Dataset):
         elif surgery == 'post':
             label[1] = 1
         if self.transform:
-            image = self.transform(image=image)['image']
+            image_transformed = self.transform(image=image)['image']
 
-        image = image.mean(axis=0, keepdims=True)
+        image_transformed = image_transformed.mean(axis=0, keepdims=True)
+        if self.augmentation:
+            image_augmented = self.augmentation(image=image)['image']
+            image_augmented = image_augmented.mean(axis=0, keepdims=True)
 
-        return image, label, patient_side
+            return image_transformed, image_augmented, label, patient_side
+        else:
+            return image_transformed, None, label, patient_side
 
 
 class PairedDataset(Dataset):
@@ -91,17 +97,32 @@ def load_data(args):
             ),
             ToTensorV2(),
         ])
+        AUGMENTATION = None
     else:
         TRANSFORM = A.Compose([
             A.Resize(height=args.resize, width=args.resize),
+            # A.Rotate(always_apply=False, p=0.5, limit=(-15, 15), interpolation=0, border_mode=0, value=(0, 0, 0), mask_value=None, rotate_method='largest_box', crop_border=False),
+            A.ShiftScaleRotate(
+                always_apply=False, p=0.5, 
+                shift_limit_x=(-0.1, 0.1), shift_limit_y=(-0.1, 0.1), 
+                scale_limit=(-0.15, 0.15), 
+                rotate_limit=(-15, 15), interpolation=0, border_mode=0, value=(0, 0, 0), 
+                mask_value=None, rotate_method='largest_box'
+            ),
+            A.Normalize(
+                mean=(0.485, 0.456, 0.406),
+                std=(0.229, 0.224, 0.225),
+            ),
+            ToTensorV2(),
+        ])
+        AUGMENTATION = A.Compose([
+            A.Resize(height=args.resize, width=args.resize),
             A.Rotate(always_apply=False, p=0.5, limit=(-15, 15), interpolation=0, border_mode=0, value=(0, 0, 0), mask_value=None, rotate_method='largest_box', crop_border=False),
-            # A.OneOf([
-            #     A.PixelDropout(always_apply=False, p=0.5, dropout_prob=0.01, per_channel=0, drop_value=(0, 0, 0), mask_drop_value=None),
-            #     A.Rotate(always_apply=False, p=0.5, limit=(-15, 15), interpolation=0, border_mode=0, value=(0, 0, 0), mask_value=None, rotate_method='largest_box', crop_border=False),
-            #     A.CoarseDropout(always_apply=False, p=1.0, max_holes=8, max_height=8, max_width=8, min_holes=8, min_height=8, min_width=8, fill_value=(0, 0, 0), mask_fill_value=None),
-
-            # ], p=0.3)
-            
+            # For dropout, compared image should be normal image
+            A.OneOf([
+                # A.PixelDropout(always_apply=True, p=1, dropout_prob=0.03, per_channel=0, drop_value=(0, 0, 0), mask_drop_value=None),
+                A.CoarseDropout(always_apply=True, p=1, max_holes=20, max_height=20, max_width=20, min_height=15, min_width=15, fill_value=(0, 0, 0), mask_fill_value=None)
+            ], p=0.5),
             A.Normalize(
                 mean=(0.485, 0.456, 0.406),
                 std=(0.229, 0.224, 0.225),
@@ -111,9 +132,9 @@ def load_data(args):
     
     df = pd.read_csv(args.dataset_csv, encoding='utf-8')
     if args.dataset == "paired":
-        train_dataset = PairedDataset(df, TRANSFORM)
+        train_dataset = PairedDataset(df, TRANSFORM, AUGMENTATION)
     elif args.dataset == "unpaired":
-        train_dataset = UnpairedDataset(args, df, TRANSFORM)
+        train_dataset = UnpairedDataset(args, df, TRANSFORM, AUGMENTATION)
     
     print("Length of train dataset: ", len(train_dataset))
     return DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)

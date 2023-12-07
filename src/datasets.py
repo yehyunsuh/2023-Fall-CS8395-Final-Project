@@ -15,10 +15,8 @@ class UnpairedDataset(Dataset):
         self.transform = transform
         self.augmentation = augmentation
 
-
     def __len__(self):
         return len(self.df)
-
 
     def __getitem__(self, index):
         if self.args.dataset_csv == "/data/yehyun/implantGAN/data/data.csv":
@@ -53,20 +51,21 @@ class PairedDataset(Dataset):
         df_pre = df_pre.rename(columns={'path': 'path_pre'})
         df_pre = df_pre.rename(columns={'filename': 'filename_pre'})
         df_pre = df_pre.drop(columns='surgery')
+        df_pre = df_pre.drop_duplicates(subset=['patient', 'side'])
 
         df_post = df[df['surgery'] == 'post']
         df_post = df_post.rename(columns={'path': 'path_post'})
         df_post = df_post.rename(columns={'filename': 'filename_post'})
         df_post = df_post.drop(columns='surgery')
+        df_post = df_post.drop_duplicates(subset=['patient', 'side'])
 
         self.df = pd.merge(left=df_pre, right=df_post)
+        self.df = self.df.dropna()
         self.df = self.df.reset_index()
         self.transform = transform
 
-
     def __len__(self):
         return len(self.df)
-
 
     def __getitem__(self, index):
         image_pre = plt.imread(f'../{self.df.loc[index, "path_pre"]}')
@@ -129,13 +128,13 @@ def load_data(args):
             ),
             ToTensorV2(),
         ])
-    
+
     df = pd.read_csv(args.dataset_csv, encoding='utf-8')
     if args.dataset == "paired":
         train_dataset = PairedDataset(df, TRANSFORM, AUGMENTATION)
     elif args.dataset == "unpaired":
         train_dataset = UnpairedDataset(args, df, TRANSFORM, AUGMENTATION)
-    
+
     print("Length of train dataset: ", len(train_dataset))
     return DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
 

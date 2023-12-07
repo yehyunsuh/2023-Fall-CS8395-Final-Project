@@ -29,7 +29,7 @@ def train_unpaired(args, model, train_loader, device):
                 image_recon, mean, log_sigma_sq = model.forward_train(image_aug, label)
             else:
                 image_recon, mean, log_sigma_sq = model.forward_train(image, label)
-            
+
             # multiple gpu
             # image_recon, mean, log_sigma_sq = model(image, label)
 
@@ -52,7 +52,7 @@ def train_unpaired(args, model, train_loader, device):
             running_total_loss += loss.item()
             running_mse_loss += mse_loss.item()
             running_kl_loss += kl_loss.item()
-        
+
         checkpoint = {
             "state_dict": model.state_dict(),
             "optimizer":  optimizer.state_dict(),

@@ -255,7 +255,7 @@ class Decoder_CVUnet(nn.Module):
 
         self.output_layers = nn.ModuleList()  # Fixed typo in variable name
         self.output_layers.append(nn.Conv2d(image_size[0], image_size[0],
-                                           3, 1, 1))
+                                            3, 1, 1))
         self.output_layers.append(nn.BatchNorm2d(image_size[0]))
         self.output_layers.append(nn.Sigmoid())
 

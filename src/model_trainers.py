@@ -20,18 +20,26 @@ def train_unpaired(args, model, train_loader, device):
         running_mse_loss = 0.0
         running_kl_loss = 0.0
 
-        for idx, (image, label, patient_side) in enumerate(tqdm(train_loader)):
+        for idx, (image, image_aug, label, patient_side) in enumerate(tqdm(train_loader)):
             image = image.to(device)
             label = label.to(torch.float32).to(device)
 
-            image_recon, mean, log_sigma_sq = model.forward_train(image, label)
+            if args.augmentation:
+                image_aug = image_aug.to(device)
+                image_recon, mean, log_sigma_sq = model.forward_train(image_aug, label)
+            else:
+                image_recon, mean, log_sigma_sq = model.forward_train(image, label)
+            
+            # multiple gpu
+            # image_recon, mean, log_sigma_sq = model(image, label)
 
             # visualize original and reconstructed image
-            # if (epoch % int(args.epochs/10) == 0 or epoch == args.epochs-1) and idx == 0 :
-            if (epoch % 100 == 0 or epoch == args.epochs-1) and idx == 0 :
+            if (epoch % int(args.epochs/30) == 0 or epoch == args.epochs-1) and idx == 0:
+            # if (epoch % 100 == 0 or epoch == args.epochs-1) and idx == 0 :
                 print(torch.max(image[0]), torch.min(image[0]))
                 print(torch.max(image_recon[0]), torch.min(image_recon[0]))
-                visualize_reconstructed_image(args, image, image_recon, epoch, idx, args.dataset, None)
+                visualize_reconstructed_image(args, image, image_recon, epoch, idx, args.dataset, None, "org")
+                visualize_reconstructed_image(args, image_aug, image_recon, epoch, idx, args.dataset, None, "aug")
 
             mse_loss = loss_fn_MSE(image_recon, image)
             kl_loss = loss_fn_KL(mean, log_sigma_sq)
@@ -45,6 +53,13 @@ def train_unpaired(args, model, train_loader, device):
             running_mse_loss += mse_loss.item()
             running_kl_loss += kl_loss.item()
         
+        checkpoint = {
+            "state_dict": model.state_dict(),
+            "optimizer":  optimizer.state_dict(),
+        }
+        # torch.save(checkpoint, f'/data/yehyun/implantGAN/{args.experiment_name}/model.pth')
+        if (epoch % int(args.epochs/7) == 0 or epoch == args.epochs-1) and args.save_weight:
+            torch.save(checkpoint, f'model_weight/{args.experiment_name}.pth')
         if args.wandb:
             log_unpaired_result(running_total_loss, running_mse_loss, running_kl_loss, len(train_loader))
 
@@ -96,7 +111,7 @@ def train_paired(args, model, train_loader, device):
             synth_loss = loss_fn_MSE(image_post_synth, image_post)
 
             # add losses
-            loss = mse_loss_pre + kl_loss_pre + mse_loss_post + kl_loss_post + synth_loss
+            loss = args.mse_weight * mse_loss_pre + kl_loss_pre + args.mse_weight * mse_loss_post + kl_loss_post + synth_loss
 
             optimizer.zero_grad()
             loss.backward()
@@ -115,6 +130,8 @@ def train_paired(args, model, train_loader, device):
 
 def train(args, model, train_loader, DEVICE):
     os.makedirs(f'{args.result}/{args.experiment_name}', exist_ok=True)
+    os.makedirs(f'model_weight', exist_ok=True)
+    # os.makedirs(f'/data/yehyun/implantGAN/{args.experiment_name}', exist_ok=True)
     if args.dataset == "paired":
         train_dataset = train_paired(args, model, train_loader, DEVICE)
     elif args.dataset == "unpaired":

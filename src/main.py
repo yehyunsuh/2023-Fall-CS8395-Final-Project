@@ -36,8 +36,10 @@ if __name__ == "__main__":
     parser.add_argument('--dataset_csv', type=str, default="../data/data.csv", help='Path to the dataset csv file')
     parser.add_argument('--resize', type=int, default=256, help='Resize value')
     parser.add_argument('--batch_size', '--bs', type=int, default=16, help='Resize value')
+    parser.add_argument('--augmentation', action='store_true')
 
     # related to model
+    parser.add_argument('--save_weight', action='store_true')
     parser.add_argument('--model', type=str, default="CVAE_CNN", help='Name of the model that you want to use')
     parser.add_argument('--latent_space', type=int, default=26, help='Size of latent space z')
     parser.add_argument('--epochs', type=int, default=100, help='Number of epochs')

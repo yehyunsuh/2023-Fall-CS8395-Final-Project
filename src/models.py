@@ -153,6 +153,12 @@ class CVAE_CNN(nn.Module):
         output = self.decode_z_to_output(z, lab)
         return output, mean, log_sigma_sq
 
+    # def forward(self, x, lab):
+    #     mean, log_sigma_sq = self.encode_x_to_mean_logsigsq(x)
+    #     z = self.encode_mean_logsigsq_to_z(mean, log_sigma_sq)
+    #     output = self.decode_z_to_output(z, lab)
+    #     return output, mean, log_sigma_sq
+
 
 class CVUnet(nn.Module):
     def __init__(self, image_shape=(1, 256, 256),
@@ -226,14 +232,22 @@ class CVUnet(nn.Module):
 
 def get_model(args):
     if args.model == "CVAE_MLP":
-        return CVAE_MLP(args.resize**2,
-                        args.resize**2,
-                        5, args.resize, n_label=2)
+        model = CVAE_MLP(
+            args.resize**2,
+            args.resize**2,
+            5, 
+            args.resize,
+            n_label=2
+        )
     elif args.model == "CVAE_CNN":
-        return CVAE_CNN(
+        model = CVAE_CNN(
             image_shape=(1, args.resize, args.resize),
             n_z=args.latent_space
         )
+    
+    # model = nn.DataParallel(model)
+
+    return model
 
 
 if __name__ == "__main__":

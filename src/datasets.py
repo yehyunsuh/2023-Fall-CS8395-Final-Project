@@ -46,7 +46,8 @@ class UnpairedDataset(Dataset):
 
 
 class PairedDataset(Dataset):
-    def __init__(self, df, transform=None):
+    def __init__(self, args, df, transform=None, augmnentation=None):
+        self.args = args
         df_pre = df[df['surgery'] == 'pre']
         df_pre = df_pre.rename(columns={'path': 'path_pre'})
         df_pre = df_pre.rename(columns={'filename': 'filename_pre'})
@@ -68,8 +69,17 @@ class PairedDataset(Dataset):
         return len(self.df)
 
     def __getitem__(self, index):
-        image_pre = plt.imread(f'../{self.df.loc[index, "path_pre"]}')
-        image_post = plt.imread(f'../{self.df.loc[index, "path_post"]}')
+        # image_pre = plt.imread(f'../{self.df.loc[index, "path_pre"]}')
+        # image_post = plt.imread(f'../{self.df.loc[index, "path_post"]}')
+        if self.args.dataset_csv == "/data/yehyun/implantGAN/data/data.csv":
+            # image = plt.imread(f'/data/yehyun/implantGAN/{self.df.loc[index, "path"]}')
+            image_pre = plt.imread(f'/data/yehyun/implantGAN/{self.df.loc[index, "path_pre"]}')
+            image_post = plt.imread(f'/data/yehyun/implantGAN/{self.df.loc[index, "path_post"]}')
+        else:
+            # image = cv2.imread(f'/data/yehyun/implantGAN/{self.df.loc[index, "path"]}')
+            image_pre = cv2.imread(f'/data/yehyun/implantGAN/{self.df.loc[index, "path_pre"]}')
+            image_post = cv2.imread(f'/data/yehyun/implantGAN/{self.df.loc[index, "path_post"]}')
+
         patient = self.df.loc[index, 'patient']
         side = self.df.loc[index, 'side']
         patient_side = patient + '_' + side
@@ -131,7 +141,7 @@ def load_data(args):
 
     df = pd.read_csv(args.dataset_csv, encoding='utf-8')
     if args.dataset == "paired":
-        train_dataset = PairedDataset(df, TRANSFORM, AUGMENTATION)
+        train_dataset = PairedDataset(args, df, TRANSFORM, AUGMENTATION)
     elif args.dataset == "unpaired":
         train_dataset = UnpairedDataset(args, df, TRANSFORM, AUGMENTATION)
 

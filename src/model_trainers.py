@@ -39,7 +39,8 @@ def train_unpaired(args, model, train_loader, device):
                 print(torch.max(image[0]), torch.min(image[0]))
                 print(torch.max(image_recon[0]), torch.min(image_recon[0]))
                 visualize_reconstructed_image(args, image, image_recon, epoch, idx, args.dataset, None, "org")
-                visualize_reconstructed_image(args, image_aug, image_recon, epoch, idx, args.dataset, None, "aug")
+                if args.augmentation:
+                    visualize_reconstructed_image(args, image_aug, image_recon, epoch, idx, args.dataset, None, "aug")
 
             mse_loss = loss_fn_MSE(image_recon, image)
             kl_loss = loss_fn_KL(mean, log_sigma_sq)
@@ -89,10 +90,12 @@ def train_paired(args, model, train_loader, device):
             kl_loss_pre = loss_fn_KL(mean_pre, log_sigma_sq_pre)
 
             # visualize original and reconstructed image
-            if (epoch % int(args.epochs/10) == 0 or epoch == args.epochs-1) and idx == 0 :
+            if (epoch % int(args.epochs/30) == 0 or epoch == args.epochs-1) and idx == 0 :
                 print(torch.max(image_pre[0]), torch.min(image_pre[0]))
                 print(torch.max(image_pre_recon[0]), torch.min(image_pre_recon[0]))
-                visualize_reconstructed_image(args, image_pre, image_pre_recon, epoch, idx, args.dataset, 'pre')
+                visualize_reconstructed_image(args, image_pre, image_pre_recon, epoch, idx, args.dataset, 'pre', 'org')
+                # if args.augmentation:
+                #     visualize_reconstructed_image(args, image_aug, image_pre_recon, epoch, idx, args.dataset, None, "aug")
 
             # post-op reconstruction
             image_post_recon, mean_post, log_sigma_sq_post = model.forward_train(image_post, label_post)
@@ -100,10 +103,12 @@ def train_paired(args, model, train_loader, device):
             kl_loss_post = loss_fn_KL(mean_post, log_sigma_sq_post)
 
             # visualize original and reconstructed image
-            if (epoch % int(args.epochs/10) == 0 or epoch == args.epochs-1) and idx == 0 :
+            if (epoch % int(args.epochs/30) == 0 or epoch == args.epochs-1) and idx == 0 :
                 print(torch.max(image_post[0]), torch.min(image_post[0]))
                 print(torch.max(image_post_recon[0]), torch.min(image_post_recon[0]))
-                visualize_reconstructed_image(args, image_post, image_post_recon, epoch, idx, args.dataset, 'post')
+                visualize_reconstructed_image(args, image_post, image_post_recon, epoch, idx, args.dataset, 'post', 'org')
+                # if args.augmentation:
+                #     visualize_reconstructed_image(args, image_aug, image_post_recon, epoch, idx, args.dataset, None, "aug")
 
             # synthesis post-op
             z_pre = model.encode_mean_logsigsq_to_z(mean_pre, log_sigma_sq_pre)
